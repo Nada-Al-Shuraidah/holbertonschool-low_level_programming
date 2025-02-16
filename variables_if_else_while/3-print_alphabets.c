@@ -4,7 +4,7 @@
  * main - Entry point of the program
  *
  * Description: This program prints the alphabet in lowercase and then in
- * uppercase, followed by a new line using only the putchar function three times.
+ * uppercase, followed by a new line only by the putchar function three times.
  *
  * Return: Always 0 (Success)
  */

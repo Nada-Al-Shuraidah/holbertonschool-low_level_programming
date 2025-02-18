@@ -26,7 +26,6 @@ if (result < 10)
 {
 _putchar(' ');  /* Print space for single-digit numbers */
 }
-            
 /* Print the result as a character */
 if (result < 10)
 {

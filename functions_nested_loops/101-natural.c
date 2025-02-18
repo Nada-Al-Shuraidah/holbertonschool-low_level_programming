@@ -7,8 +7,8 @@
 */
 int sum_multiples(void)
 {
-int sum = 0;  /* Declarations INSIDE the function */
-int i;        /* Declarations INSIDE the function */
+int sum = 0;
+int i;
 
 for (i = 0; i < 1024; i++)
 {
@@ -46,6 +46,12 @@ print_number(num / 10);
 _putchar((num % 10) + '0');
 }
 
+/**
+* main - Entry point of the program.
+*
+* Return: Always 0 (success).
+* <--- No space between main and (void)
+*/
 int main(void)
 {
 int sum = sum_multiples();

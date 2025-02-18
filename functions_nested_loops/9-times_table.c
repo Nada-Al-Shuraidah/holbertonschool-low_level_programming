@@ -26,8 +26,17 @@ if (result < 10)
 {
 _putchar(' ');  /* Print space for single-digit numbers */
 }
+            
 /* Print the result as a character */
-_putchar(result + '0');
+if (result < 10)
+{
+_putchar(result + '0');  /* For single-digit numbers */
+}
+else
+{
+_putchar((result / 10) + '0');  /* Print tens place */
+_putchar((result % 10) + '0');  /* Print ones place */
+}
 }
 /* Move to the next line after each row */
 _putchar('\n');

@@ -17,5 +17,6 @@ void print_times_table(int n);
 int sum_multiples(void);
 void print_number(int n);
 int _putchar(char c);
+void print_number(unsigned long n);
 
 #endif /* MAIN_H */

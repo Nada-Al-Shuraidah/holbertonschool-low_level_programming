@@ -1,51 +1,76 @@
-#include <stdio.h>
 #include "main.h"
+#include <stdio.h>
 
 /**
-* main - Entry point
-*
-* Return: Always 0 (Success)
-*/
-int main(void)
+ * print_first_fibonacci - Prints the first 92 Fibonacci numbers.
+ */
+void print_first_fibonacci(void)
 {
-unsigned long int i;
-unsigned long int a1 = 1, a2 = 2, b1;
-unsigned long int a1_high, a1_low, a2_high, a2_low;
-unsigned long int high, low;
+unsigned long a = 1, b = 2, temp;
+int count;
 
-printf("%lu, %lu", a1, a2);
+printf("%lu, %lu", a, b);
 
-for (i = 2; i < 98; i++)
+for (count = 3; count <= 92; count++)
 {
-if (i < 91)
-{
-b1 = a1 + a2;
-a1 = a2;
-a2 = b1;
-printf(", %lu", b1);
+temp = a + b;
+printf(", %lu", temp);
+a = b;
+b = temp;
 }
-else
-{
-a1_high = a1 / 1000000000;
-a1_low = a1 % 1000000000;
-a2_high = a2 / 1000000000;
-a2_low = a2 % 1000000000;
-
-high = a1_high + a2_high;
-low = a1_low + a2_low;
-
-if (low > 999999999)
-{
-high += 1;
-low %= 1000000000;
+printf(", ");
 }
 
-printf(", %lu%09lu", high, low);
+/**
+ * print_large_fibonacci-Prints Fibonacci numbers beyond 92 using split digits.
+ * @a_high: High part of first number
+ * @a_low: Low part of first number
+ * @b_high: High part of second number
+ * @b_low: Low part of second number
+ */
+void print_large_fibonacci(
+unsigned long a_high, unsigned long a_low,
+unsigned long b_high, unsigned long b_low)
+{
+unsigned long temp_high, temp_low;
+int count;
 
-a1 = a2;
-a2 = high * 1000000000 + low;
+for (count = 93; count <= 98; count++)
+{
+temp_high = a_high + b_high;
+temp_low = a_low + b_low;
+
+if (temp_low >= 1000000000)
+{
+temp_high += 1;
+temp_low -= 1000000000;
 }
+
+printf("%lu%09lu", temp_high, temp_low);
+if (count != 98)
+printf(", ");
+
 }
 printf("\n");
+}
+
+/**
+ * main - Entry point
+ * Return: Always 0.
+ */
+int main(void)
+{
+unsigned long a_high, a_low, b_high, b_low;
+unsigned long a = 1, b = 2;
+
+print_first_fibonacci();
+
+a_high = a / 1000000000;
+a_low = a % 1000000000;
+b_high = b / 1000000000;
+b_low = b % 1000000000;
+
+print_large_fibonacci(a_high, a_low, b_high, b_low);
+
 return (0);
 }

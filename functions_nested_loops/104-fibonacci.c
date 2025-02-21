@@ -50,6 +50,11 @@ printf("%lu%09lu", temp_high, temp_low);
 if (count != 98)
 printf(", ");
 
+a_high = b_high;
+a_low = b_low;
+b_high = temp_high;
+b_low = temp_low;
+
 }
 printf("\n");
 }

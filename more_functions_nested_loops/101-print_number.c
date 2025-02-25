@@ -6,6 +6,14 @@
 */
 void print_number(int n)
 {
+if (n == -2147483648) /* Handle INT_MIN separately */
+{
+_putchar('-');
+_putchar('2');
+print_number(147483648); /* Print remaining digits */
+return;
+}
+
 if (n < 0) /* Handle negative numbers */
 {
 _putchar('-');

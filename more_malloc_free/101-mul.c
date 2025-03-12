@@ -73,7 +73,7 @@ exit(98);
 char *multiply(char *num1, char *num2)
 {
 int len1 = 0, len2 = 0, total_len, i, j, carry, num1_digit, num2_digit, sum;
-char *result;
+char *result, *temp_result;
 
 while (num1[len1])
 len1++;
@@ -104,8 +104,22 @@ result[i + j + 1] = (sum % 10) + '0';
 result[i + j + 1] += carry;
 }
 
-while (*result == '0' && *(result + 1))
-result++;
+for (i = 0; result[i] == '0' && result[i + 1]; i++)
+;
 
-return (result);
+temp_result = malloc(total_len - i + 1);
+if (!temp_result)
+{
+free(result);
+return (NULL);
+}
+
+for (j = 0; result[i]; i++, j++)
+{
+temp_result[j] = result[i];
+}
+temp_result[j] = '\0';
+
+free(result);
+return (temp_result);
 }

@@ -18,5 +18,5 @@ h = h->next;         /* Move to the next node in the list */
 count++;             /* Increment the node counter */
 }
 
-return count; /* Return the total number of nodes */
+return (count); /* Return the total number of nodes */
 }

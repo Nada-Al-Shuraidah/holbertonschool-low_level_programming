@@ -3,6 +3,22 @@
 #include <string.h>
 
 /**
+* _str_len - Computes the length of a string manually.
+* @str: Pointer to the string.
+*
+* Return: Length of the string.
+*/
+size_t _str_len(const char *str)
+{
+size_t len = 0;
+
+while (str[len] != '\0')
+len++;
+
+return (len);
+}
+
+/**
 * add_node - Adds a new node at the beginning of a list_t list.
 * @head: Double pointer to the head of the list.
 * @str: String to be added to the new node.
@@ -26,8 +42,8 @@ free(new_node);
 return (NULL);
 }
 
-/* Set the length of the string */
-new_node->len = strlen(str);
+/* Compute the string length using the custom _str_len function */
+new_node->len = _str_len(str);
 
 /* Point to the current head */
 new_node->next = *head;

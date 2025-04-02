@@ -33,31 +33,21 @@ fd_from = open(file_from, O_RDONLY);
 if (fd_from == -1)
 print_error(98, "Error: Can't read from file %s\n", file_from);
 
-/* Open destination file (truncate if exists, create with rw-rw-r-- perms) */
+/* Open destination file */
 fd_to = open(file_to, O_WRONLY | O_CREAT | O_TRUNC, 0664);
 if (fd_to == -1)
-{
-close(fd_from);
 print_error(99, "Error: Can't write to %s\n", file_to);
-}
 
-/* Read from file_from and write to file_to */
+/* Read and write loop */
 while ((bytes_read = read(fd_from, buffer, BUFFER_SIZE)) > 0)
 {
 bytes_written = write(fd_to, buffer, bytes_read);
 if (bytes_written != bytes_read)
-{
-close(fd_from);
-close(fd_to);
 print_error(99, "Error: Can't write to %s\n", file_to);
 }
-}
+
 if (bytes_read == -1)
-{
-close(fd_from);
-close(fd_to);
 print_error(98, "Error: Can't read from file %s\n", file_from);
-}
 
 /* Close file descriptors */
 if (close(fd_from) == -1)

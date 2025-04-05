@@ -58,9 +58,12 @@ char buffer[1024];
 
 while ((rd = read(fd_from, buffer, sizeof(buffer))) > 0)
 {
+if (rd < 0)
+perror("Read error");
 wr = write(fd_to, buffer, rd);
 if (wr < 0 || wr != rd)
 {
+perror("Write error");
 dprintf(STDERR_FILENO, "Error: Can't write to %s\n", dest);
 close(fd_from);
 close(fd_to);

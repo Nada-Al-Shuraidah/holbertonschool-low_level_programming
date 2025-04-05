@@ -1,73 +1,115 @@
 #include "main.h"
-#include <fcntl.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#define BUFFER_SIZE 1024
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 /**
-* print_error - Prints an error message and exits with the given code.
-* @exit_code: The exit code to use.
-* @message: The error message format string.
-* @arg: The argument to include in the message.
+* open_source - Open the source file for reading.
+* @file: Name of source file.
+* Return: File descriptor, or exit(98) on failure.
 */
-void print_error(int exit_code, const char *message, const char *arg)
+int open_source(char *file)
 {
-dprintf(STDERR_FILENO, message, arg);
-exit(exit_code);
+int fd;
+
+fd = open(file, O_RDONLY);
+if (fd < 0)
+{
+dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", file);
+exit(98);
+}
+return (fd);
 }
 
 /**
-* copy_file - Copies content from one file to another.
-* @file_from: Source file
-* @file_to: Destination file
+* open_dest - Open or create the destination file for writing.
+* @file: Name of destination file.
+* Return: File descriptor, or exit(99) on failure.
 */
-void copy_file(const char *file_from, const char *file_to)
+int open_dest(char *file)
 {
-int fd_from, fd_to, bytes_read, bytes_written;
-char buffer[BUFFER_SIZE];
+int fd;
 
-/* Open source file */
-fd_from = open(file_from, O_RDONLY);
-if (fd_from == -1)
-print_error(98, "Error: Can't read from file %s\n", file_from);
-
-/* Open destination file */
-fd_to = open(file_to, O_WRONLY | O_CREAT | O_TRUNC, 0664);
-if (fd_to == -1)
-print_error(99, "Error: Can't write to %s\n", file_to);
-
-/* Read and write loop */
-while ((bytes_read = read(fd_from, buffer, BUFFER_SIZE)) > 0)
+fd = open(file, O_CREAT | O_WRONLY | O_TRUNC, 0664);
+if (fd < 0)
 {
-bytes_written = write(fd_to, buffer, bytes_read);
-if (bytes_written != bytes_read)
-print_error(99, "Error: Can't write to %s\n", file_to);
+dprintf(STDERR_FILENO, "Error: Can't write to %s\n", file);
+exit(99);
 }
-
-if (bytes_read == -1)
-print_error(98, "Error: Can't read from file %s\n", file_from);
-
-/* Close file descriptors */
-if (close(fd_from) == -1)
-print_error(100, "Error: Can't close fd %d\n", file_from);
-if (close(fd_to) == -1)
-print_error(100, "Error: Can't close fd %d\n", file_to);
+return (fd);
 }
 
 /**
-* main - Entry point, copies one file to another.
-* @argc: Argument count
-* @argv: Argument vector
+* copy_content - Reads data from fd_from and writes it to fd_to.
+* @fd_from: Source file descriptor.
+* @fd_to: Destination file descriptor.
+* @src: Source filename (for error messages).
+* @dest: Destination filename (for error messages).
 *
-* Return: 0 on success, exits on failure.
+* Exits(98) if read() fails, Exits(99) if write() fails.
 */
-int main(int argc, char *argv[])
+void copy_content(int fd_from, int fd_to, char *src, char *dest)
 {
-if (argc != 3)
-print_error(97, "Usage: cp file_from file_to\n", "");
+ssize_t rd, wr;
+char buffer[1024];
 
-copy_file(argv[1], argv[2]);
+while ((rd = read(fd_from, buffer, sizeof(buffer))) > 0)
+{
+wr = write(fd_to, buffer, rd);
+if (wr < 0 || wr != rd)
+{
+dprintf(STDERR_FILENO, "Error: Can't write to %s\n", dest);
+close(fd_from);
+close(fd_to);
+exit(99);
+}
+}
+if (rd < 0)
+{
+dprintf(STDERR_FILENO, "Error: Can't read from file %s\n", src);
+close(fd_from);
+close(fd_to);
+exit(98);
+}
+}
+
+/**
+* close_fd - Closes a file descriptor; exit(100) on error.
+* @fd: File descriptor to close.
+*/
+void close_fd(int fd)
+{
+if (close(fd) < 0)
+{
+dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fd);
+exit(100);
+}
+}
+
+/**
+* main - Copies content of one file to another.
+* @ac: Argument count (must be 3).
+* @av: Array of arguments: cp file_from file_to
+*
+* Return: 0 on success, or exit codes on various failures:
+*  97 (usage), 98 (read error), 99 (write error), 100 (close error).
+*/
+int main(int ac, char *av[])
+{
+int fd_from, fd_to;
+
+if (ac != 3)
+{
+dprintf(STDERR_FILENO, "Usage: cp file_from file_to\n");
+exit(97);
+}
+fd_from = open_source(av[1]);
+fd_to = open_dest(av[2]);
+copy_content(fd_from, fd_to, av[1], av[2]);
+close_fd(fd_from);
+close_fd(fd_to);
 return (0);
 }

@@ -1,83 +1,130 @@
 #include "main.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+
+#define BUFFER_SIZE 1024
 
 /**
-* print_error - Print error message to stderr and exit with given code
-* @exit_code: code to exit with
-* @msg: message format string
-* @arg: argument to include in message
+* error_exit - An helper function to handle errors print and exit
+*
+* @code: The exit code to return
+* @msg: The error message to be printed
+* @arg: A string of arguments for message
+*
+* Return: Nothing
 */
-void print_error(int exit_code, const char *msg, const char *arg)
+
+void error_exit(int code, char *msg, int arg)
 {
 dprintf(STDERR_FILENO, msg, arg);
-exit(exit_code);
+exit(code);
 }
 
 /**
-* close_fd - Close a file descriptor and handle error
-* @fd: file descriptor
+* error_exit_str - An helper function to print a message with string and exit
+*
+* @code: The exit code to return
+* @msg: The error message to be printed
+* @arg: A string of arguments for message
 */
-void close_fd(int fd)
+
+void error_exit_str(int code, char *msg, char *arg)
 {
-if (close(fd) == -1)
-{
-dprintf(STDERR_FILENO, "Error: Can't close fd %d\n", fd);
-exit(100);
-}
+dprintf(STDERR_FILENO, msg, arg);
+exit(code);
 }
 
 /**
-* copy_file - Copy contents of one file to another
-* @file_from: source file name
-* @file_to: destination file name
+* copy - Helper function to copy file content
+*
+* @f_f: The source file descriptor
+* @f_t: The destination files descriptor
+* @sr: The source of the file
+* @des: The destination of the file
+* @f_buf: The first buffer read
+* @f_b: The number of bytes inside the first buffer
+*
+* Return: Noting
 */
-void copy_file(const char *file_from, const char *file_to)
-{
-int fd_from, fd_to, r, w;
-char buffer[1024];
 
-fd_from = open(file_from, O_RDONLY);
+void copy(int f_f, int f_t, char *sr, char *des, char *f_buf, ssize_t f_b)
+{
+char buffer[BUFFER_SIZE];
+ssize_t b_read, b_wr;
+
+b_wr = write(f_t, f_buf, f_b);
+if (b_wr == -1)
+{
+close(f_f);
+close(f_t);
+error_exit_str(99, "Error: Can't write to %s\n", des);
+}
+
+while ((b_read = read(f_f, buffer, BUFFER_SIZE)) > 0)
+{
+b_wr = write(f_t, buffer, b_read);
+if (b_wr == -1)
+{
+close(f_f);
+close(f_t);
+error_exit_str(99, "Error: Can't write to %s\n", des);
+}
+}
+
+if (b_read == -1)
+{
+close(f_f);
+close(f_t);
+error_exit_str(98, "Error: Can't read from file %s\n", sr);
+}
+}
+
+
+/**
+* main - Entry point
+*
+* @argc: Argument counts
+* @argv: Values of arguments
+*
+* Return: 0 for success, various code for failures
+*/
+
+int main(int argc, char *argv[])
+{
+int fd_from, fd_to;
+char buffer[BUFFER_SIZE];
+ssize_t bytes_read;
+
+if (argc != 3)
+error_exit_str(97, "Usage: cp file_from file_to\n", "");
+
+fd_from = open(argv[1], O_RDONLY);
 if (fd_from == -1)
-print_error(98, "Error: Can't read from file %s\n", file_from);
+error_exit_str(98, "Error: Can't read from file %s\n", argv[1]);
 
-fd_to = open(file_to, O_WRONLY | O_CREAT | O_TRUNC, 0664);
+bytes_read = read(fd_from, buffer, BUFFER_SIZE);
+if (bytes_read == -1)
+{
+close(fd_from);
+error_exit_str(98, "Error: Can't read from file %s\n", argv[1]);
+}
+
+fd_to = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC, 0664);
 if (fd_to == -1)
 {
-close_fd(fd_from);
-print_error(99, "Error: Can't write to %s\n", file_to);
+close(fd_from);
+error_exit_str(99, "Error: Can't write to %s\n", argv[2]);
 }
 
-while ((r = read(fd_from, buffer, 1024)) > 0)
-{
-w = write(fd_to, buffer, r);
-if (w != r)
-{
-close_fd(fd_from);
-close_fd(fd_to);
-print_error(99, "Error: Can't write to %s\n", file_to);
-}
-}
-if (r == -1)
-{
-close_fd(fd_from);
-close_fd(fd_to);
-print_error(98, "Error: Can't read from file %s\n", file_from);
-}
+copy(fd_from, fd_to, argv[1], argv[2], buffer, bytes_read);
 
-close_fd(fd_from);
-close_fd(fd_to);
-}
+if (close(fd_from) == -1)
+error_exit(100, "Error: Can't close fd %d\n", fd_from);
+if (close(fd_to) == -1)
+error_exit(100, "Error: Can't close fd %d\n", fd_to);
 
-/**
-* main - Entry point. Handles arguments and calls copy_file.
-* @argc: argument count
-* @argv: argument vector
-* Return: 0 on success
-*/
-int main(int argc, char **argv)
-{
-if (argc != 3)
-print_error(97, "Usage: cp file_from file_to\n", "");
-
-copy_file(argv[1], argv[2]);
 return (0);
 }
